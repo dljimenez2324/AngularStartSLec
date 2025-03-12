@@ -1,57 +1,64 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { IProduct } from './product';
 import { ProductsService } from './products.service';
+import { Subscription } from 'rxjs';
 @Component({
   selector: 'pm-product-list',
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css'],
-  providers:[ProductsService]
+  providers: [ProductsService],
 })
-export class ProductListComponent implements OnInit {
-pageTitle: string = "Product List";
-imageWidth: number = 100;
-imageMargin: number = 2;
-showImage:boolean = true;
-errorMessage: string = '';
+export class ProductListComponent implements OnInit, OnDestroy {
+  pageTitle: string = 'Product List';
+  imageWidth: number = 100;
+  imageMargin: number = 2;
+  showImage: boolean = true;
+  errorMessage: string = '';
 
-private _listFilter: string = '';
-get listFilter(): string {
-  return this._listFilter
-}
-set listFilter(value:string) {
-  this._listFilter = value;
-  console.log("In setter we have this value:", value)
-  this.filteredProducts = this.performFilter(value)
-}
-filteredProducts: IProduct[] = [];
-products :IProduct[] = [];
-constructor(private ProductsService: ProductsService) {}
-performFilter(filterBy:string):IProduct[] {
-  filterBy = filterBy.toLowerCase()
-  return this.products.filter((product: IProduct) => product.productName.toLowerCase().includes(filterBy))
-}
-toggleImage(): void {
-  this.showImage = !this.showImage
-}
-ngOnInit(): void {
-  this.ProductsService.getProducts().subscribe({
-    next: Products => 
-    {
-      this.products = Products,
-      this.filteredProducts = this.products
-    },
-    error: err => this.errorMessage = err
-  });
-  
-  this.filteredProducts = this.products
-}
-onRatingClicked(message: string): void {
-  this.pageTitle = 'Product List: ' + message
-}
-}
+  // to unsubscribe / destroy
+  sub!:Subscription
 
+  private _listFilter: string = '';
+  get listFilter(): string {
+    return this._listFilter;
+  }
+  set listFilter(value: string) {
+    this._listFilter = value;
+    console.log('In setter we have this value:', value);
+    this.filteredProducts = this.performFilter(value);
+  }
+  filteredProducts: IProduct[] = [];
+  products: IProduct[] = [];
+  constructor(private ProductsService: ProductsService) {}
+  performFilter(filterBy: string): IProduct[] {
+    filterBy = filterBy.toLowerCase();
+    return this.products.filter((product: IProduct) =>
+      product.productName.toLowerCase().includes(filterBy)
+    );
+  }
+  toggleImage(): void {
+    this.showImage = !this.showImage;
+  }
+  ngOnInit(): void {
+    this.sub = this.ProductsService.getProducts().subscribe({
+      next: (Products) => {
+        (this.products = Products), (this.filteredProducts = this.products);
+      },
+      error: (err) => (this.errorMessage = err),
+    });
 
+    this.filteredProducts = this.products;
+  }
 
+  // to destroy
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
+  onRatingClicked(message: string): void {
+    this.pageTitle = 'Product List: ' + message;
+  }
+}
 
 // import { Component, OnInit } from '@angular/core';
 // import { IProduct } from './product';
@@ -65,7 +72,6 @@ onRatingClicked(message: string): void {
 // })
 
 // export class ProductListComponent implements OnInit {
-
 
 //   pageTitle: string = 'Product List';
 //   imageWidth: number = 100;
@@ -92,7 +98,7 @@ onRatingClicked(message: string): void {
 
 //   // lets make an array of products
 //   products: IProduct[] = [
-    
+
 //   ];
 
 //   // lets make a constructor to inject our products service
@@ -101,7 +107,7 @@ onRatingClicked(message: string): void {
 //   // lets make a method for filtering our products
 //   performFilter(filterBy:string): IProduct[] {
 //     filterBy = filterBy.toLocaleLowerCase();
-//     return this.products.filter((product: IProduct) => 
+//     return this.products.filter((product: IProduct) =>
 //       product.productName.toLocaleLowerCase().includes(filterBy));
 //   }
 
@@ -114,12 +120,11 @@ onRatingClicked(message: string): void {
 //     // this below is our products array by getting it from our products service
 //     this.products = this.productService.getProducts();
 //     this.listFilter = 'cart';
-    
+
 //   }
 
 //   onRatingClicked(message: string): void {
 //     this.pageTitle = 'Product List: ' + message;
 //   }
 
-  
 // }
